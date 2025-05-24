@@ -1,0 +1,27 @@
+name: Test autodock-dev/actions Github action
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch: # allow manual triggering from Github UI
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      releases: read
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Test -h
+        uses: ./
+        id: test_run
+        with:
+          args: "-h"

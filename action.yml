@@ -7,6 +7,11 @@ inputs:
     require: false
     default: './docker-compose.yml'
 
+  args:
+    description: 'arguments for autodock'
+    require: false
+    defaults: "-f ${{ inputs.compose_file_path }}"
+
 outputs: TODO
 
 runs:
@@ -50,6 +55,6 @@ steps:
     run: |
       BINARY_FULL_PATH="${{ steps.download-binary.outputs.binary_path }}"
       echo "Running: $BINARY_FULL_PATH ${{ inputs.binary_args }}"
-      "$BINARY_FULL_PATH -f ${{ inputs.complse_file_path }} generate   # TODO: set up AWS credentials and change this to deploy
+      "$BINARY_FULL_PATH ${{ inputs.args }}"   # TODO: set up AWS credentials and change this to deploy
       cat ./bootstrap-template.yaml
 
