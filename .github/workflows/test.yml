@@ -13,7 +13,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
     permissions:
-      releases: read
       contents: read
 
     steps:
