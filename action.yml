@@ -43,7 +43,7 @@ runs:
           JQ_FILTER='map(select(.tagName | contains("dev") | not)).[0].tagName'
         fi
 
-        LATEST_TAG=$(gh release list --repo "$AUTODOCK_REPO" --limit 20 --json tagName --jq $JQ_FILTER)
+        LATEST_TAG=$(gh release list --repo "$AUTODOCK_REPO" --limit 20 --json tagName --jq '$JQ_FILTER')
         if [ -z "$LATEST_TAG" ]; then
           echo "Error: No releases found in $AUTODOCK_REPO"
           exit 1
