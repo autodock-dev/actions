@@ -32,7 +32,7 @@ runs:
       # use gh CLI to find the latest tag
       run: |
         echo "Finding latest non-dev release for autodock"
-        LATEST_TAG=$(gh release list --repo $AUTODOCK_REPO --limit 20 --json tagName --jq 'map(select(.tagName | endswith("dev") | not)).[0].tagName' --token "${{ github.token }}")
+        LATEST_TAG=$(gh release list --repo $AUTODOCK_REPO --limit 20 --json tagName --jq 'map(select(.tagName | endswith("dev") | not)).[0].tagName' ")
         if [ -z "$LATEST_TAG" ]; then
         echo "Error: No releases found in $AUTODOCK_REPO"
           exit 1
@@ -51,8 +51,7 @@ runs:
           --repo $AUTODOCK_REPO \
           --pattern "autodock-linux-amd64*" \
           --dir "$DOWNLOAD_DIR" \
-          --clobber \
-          --token "${{ github.token }}" # Pass the token for cross-repo access
+          --clobber
         chmod +x "$BINARY_FULL_PATH"
         echo "Downloaded and made executable: $BINARY_FULL_PATH"
         echo "binary_path=$BINARY_FULL_PATH" >> "$GITHUB_OUTPUT"
