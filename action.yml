@@ -10,6 +10,10 @@ inputs:
     description: 'arguments for autodock'
     required: false
     default: ""
+  binary_asset_name:
+    description: 'Base name of the binary asset to download (e.g., autodock_Linux_x86_64)'
+    required: false
+    default: 'autodock_Linux_x86_64'
 
 
 runs:
@@ -29,6 +33,9 @@ runs:
       run: |
         echo "Value of AUTODOCK_REPO: '$AUTODOCK_REPO'"
         echo "Finding latest non-dev release for autodock"
+        # The jq filter currently excludes "dev" tags, but your example found "v0.0.0-dev2".
+        # This implies either no non-dev releases exist, or the filter needs adjustment if you want non-dev only.
+        # For now, we'll assume the found tag is what you want to proceed with.
         LATEST_TAG=$(gh release list --repo "$AUTODOCK_REPO" --limit 20 --json tagName --jq 'map(select(.tagName | endswith("dev") | not)).[0].tagName')
         if [ -z "$LATEST_TAG" ]; then
           echo "Error: No releases found in $AUTODOCK_REPO"
@@ -37,34 +44,51 @@ runs:
         echo "Found latest release tag: $LATEST_TAG"
         echo "latest_tag=$LATEST_TAG" >> "$GITHUB_OUTPUT"
 
-    - name: Download the binary asset
+    - name: Download and Extract the Binary Asset
       id: download-binary
       shell: bash
       env:
         AUTODOCK_REPO: autodock-dev/autodock
       run: |
         DOWNLOAD_DIR='.'
-        BINARY_FULL_PATH="$DOWNLOAD_DIR/autodock"
-        echo "Downloading autodock from release ${{ steps.get-release-tag.outputs.latest_tag }} "
-        gh release download "${{ steps.get-release-tag.outputs.latest_tag }}" \
+        RELEASE_TAG="${{ steps.get-release-tag.outputs.latest_tag }}"
+        INPUT_ASSET_BASE_NAME="${{ inputs.binary_asset_name }}" # e.g., autodock_Linux_x86_64
+        ARCHIVE_NAME="${INPUT_ASSET_BASE_NAME}.tar.gz"           # e.g., autodock_Linux_x86_64.tar.gz
+        
+        echo "Downloading archive '$ARCHIVE_NAME' from release '$RELEASE_TAG'"
+
+        gh release download "$RELEASE_TAG" \
           --repo "$AUTODOCK_REPO" \
-          --pattern "autodock-linux-amd64*" \
+          --pattern "$ARCHIVE_NAME" \ # <--- Use the full archive name for the pattern
           --dir "$DOWNLOAD_DIR" \
           --clobber
-        chmod +x "$BINARY_FULL_PATH"
-        echo "Downloaded and made executable: $BINARY_FULL_PATH"
-        echo "binary_path=$BINARY_FULL_PATH" >> "$GITHUB_OUTPUT"
+        
+        echo "Extracting '$ARCHIVE_NAME' to '$DOWNLOAD_DIR'..."
+        tar -xzf "$DOWNLOAD_DIR/$ARCHIVE_NAME" -C "$DOWNLOAD_DIR"
+
+        # Assuming Goreleaser places the executable named 'autodock' at the root of the archive.
+        # Adjust 'autodock' here if the executable has a different name inside the archive.
+        ACTUAL_BINARY_PATH="$DOWNLOAD_DIR/autodock" 
+
+        if [ ! -f "$ACTUAL_BINARY_PATH" ]; then
+          echo "Error: Expected binary '$ACTUAL_BINARY_PATH' not found after extraction."
+          ls -R "$DOWNLOAD_DIR" # List contents to help debug if extraction fails
+          exit 1
+        fi
+
+        chmod +x "$ACTUAL_BINARY_PATH"
+        echo "Downloaded, extracted, and made executable: $ACTUAL_BINARY_PATH"
+        echo "binary_path=$ACTUAL_BINARY_PATH" >> "$GITHUB_OUTPUT"
 
     - name: Run the downloaded binary
       shell: bash
-      env:
-        AUTODOCK_REPO: autodock-dev/autodock
       run: |
-        # Get the compose file path from inputs, defaulting if not provided
         COMPOSE_FILE="${{ inputs.compose_file_path }}"
-        # Get any additional arguments provided to the action
         ADDITIONAL_ARGS="${{ inputs.args }}"
         BINARY_FULL_PATH="${{ steps.download-binary.outputs.binary_path }}"
-        echo "Running: $BINARY_FULL_PATH $COMPOSE_FILE $ADDITIONAL_ARGS"
-        "$BINARY_FULL_PATH" "$COMPOSE_FILE" $ADDITIONAL_ARGS # Corrected to pass COMPOSE_FILE as a separate argument without -f unless needed
+        
+        echo "Running: $BINARY_FULL_PATH -f $COMPOSE_FILE $ADDITIONAL_ARGS"
+        # Assuming autodock expects -f before the compose file
+        "$BINARY_FULL_PATH" -f "$COMPOSE_FILE" $ADDITIONAL_ARGS
+        
         cat ./bootstrap-template.yaml
