@@ -90,5 +90,3 @@ runs:
         echo "Running: $BINARY_FULL_PATH -f $COMPOSE_FILE $ADDITIONAL_ARGS"
         # Assuming autodock expects -f before the compose file
         "$BINARY_FULL_PATH" -f "$COMPOSE_FILE" $ADDITIONAL_ARGS
-        
-        cat ./bootstrap-template.yaml
