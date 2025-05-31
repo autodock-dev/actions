@@ -45,7 +45,7 @@ runs:
         BINARY_FULL_PATH="$DOWNLOAD_DIR/autodock"
         echo "Downloading autodock from release ${{ steps.get-release-tag.outputs.latest_tag }} "
         gh release download "${{ steps.get-release-tag.outputs.latest_tag }}" \
-          --repo $AUTODOCK_REPO \
+          --repo "$AUTODOCK_REPO" \
           --pattern "autodock-linux-amd64*" \
           --dir "$DOWNLOAD_DIR" \
           --clobber
@@ -62,6 +62,5 @@ runs:
         ADDITIONAL_ARGS="${{ inputs.args }}"
         BINARY_FULL_PATH="${{ steps.download-binary.outputs.binary_path }}"
         echo "Running: $BINARY_FULL_PATH $COMPOSE_FILE $ADDITIONAL_ARGS"
-        "$BINARY_FULL_PATH $COMPOSE_FILE $ADDITIONAL_ARGS"   # TODO: set up AWS credentials and change this to deploy
+        "$BINARY_FULL_PATH" "$COMPOSE_FILE" $ADDITIONAL_ARGS # Corrected to pass COMPOSE_FILE as a separate argument without -f unless needed
         cat ./bootstrap-template.yaml
-
