@@ -21,20 +21,17 @@ runs:
     - name: Setup GitHub CLI
       shell: bash
       run: |
-        # This ensures gh CLI is authenticated before use.
-        # The GITHUB_TOKEN environment variable is automatically available at the job level.
         echo "${{ github.token }}" | gh auth login --with-token
         gh config set prompt disabled
 
     - name: Get latest release tag
       id: get-release-tag
       shell: bash
-      # use gh CLI to find the latest tag
       run: |
         echo "Finding latest non-dev release for autodock"
-        LATEST_TAG=$(gh release list --repo $AUTODOCK_REPO --limit 20 --json tagName --jq 'map(select(.tagName | endswith("dev") | not)).[0].tagName' ")
+        LATEST_TAG=$(gh release list --repo "$AUTODOCK_REPO" --limit 20 --json tagName --jq 'map(select(.tagName | endswith("dev") | not)).[0].tagName')
         if [ -z "$LATEST_TAG" ]; then
-        echo "Error: No releases found in $AUTODOCK_REPO"
+          echo "Error: No releases found in $AUTODOCK_REPO"
           exit 1
         fi
         echo "Found latest release tag: $LATEST_TAG"
@@ -46,7 +43,7 @@ runs:
       run: |
         DOWNLOAD_DIR='.'
         BINARY_FULL_PATH="$DOWNLOAD_DIR/autodock"
-        echo "Downloading ${{ inputs.binary_asset_name }} from release ${{ steps.get-release-tag.outputs.latest_tag }} "
+        echo "Downloading autodock from release ${{ steps.get-release-tag.outputs.latest_tag }} "
         gh release download "${{ steps.get-release-tag.outputs.latest_tag }}" \
           --repo $AUTODOCK_REPO \
           --pattern "autodock-linux-amd64*" \
