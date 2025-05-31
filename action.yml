@@ -20,7 +20,6 @@ runs:
     - name: Setup GitHub CLI
       shell: bash
       run: |
-        echo "Value of AUTODOCK_REPO: '$AUTODOCK_REPO'"
         echo "${{ github.token }}" | gh auth login --with-token
         gh config set prompt disabled
 
@@ -28,6 +27,7 @@ runs:
       id: get-release-tag
       shell: bash
       run: |
+        echo "Value of AUTODOCK_REPO: '$AUTODOCK_REPO'"
         echo "Finding latest non-dev release for autodock"
         LATEST_TAG=$(gh release list --repo "$AUTODOCK_REPO" --limit 20 --json tagName --jq 'map(select(.tagName | endswith("dev") | not)).[0].tagName')
         if [ -z "$LATEST_TAG" ]; then
