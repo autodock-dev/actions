@@ -18,7 +18,18 @@ env:
 
 jobs:
   runs-on: ubuntu-latest
+  permissions:
+    contents: read
+    packages: read
+
   steps:
+  
+    - name: Setup GitHub CLI
+      run: |
+        # This ensures gh CLI is authenticated before use.
+        # The GITHUB_TOKEN environment variable is automatically available at the job level.
+        echo "${{ github.token }}" | gh auth login --with-token
+        gh config set prompt disabled
     - name: Get latest release tag
       id: get-release-tag
       shell: bash
@@ -45,7 +56,7 @@ jobs:
           --pattern "autodock-linux-amd64*" \
           --dir "$DOWNLOAD_DIR" \
           --clobber \
-          --token "${{ inputs.github_token }}" # Pass the token for cross-repo access
+          --token "${{ github.token }}" # Pass the token for cross-repo access
         chmod +x "$BINARY_FULL_PATH"
         echo "Downloaded and made executable: $BINARY_FULL_PATH"
         echo "binary_path=$BINARY_FULL_PATH" >> "$GITHUB_OUTPUT"
