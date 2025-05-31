@@ -14,6 +14,10 @@ inputs:
     description: 'Base name of the binary asset to download (e.g., autodock_Linux_x86_64)'
     required: false
     default: 'autodock_Linux_x86_64'
+  dev_mode:
+    description: 'Download latest dev binary for testing purpose'
+    required: false
+    default: "false"
 
 
 runs:
@@ -33,10 +37,13 @@ runs:
       run: |
         echo "Value of AUTODOCK_REPO: '$AUTODOCK_REPO'"
         echo "Finding latest non-dev release for autodock"
-        # The jq filter currently excludes "dev" tags, but your example found "v0.0.0-dev2".
-        # This implies either no non-dev releases exist, or the filter needs adjustment if you want non-dev only.
-        # For now, we'll assume the found tag is what you want to proceed with.
-        LATEST_TAG=$(gh release list --repo "$AUTODOCK_REPO" --limit 20 --json tagName --jq 'map(select(.tagName | endswith("dev") | not)).[0].tagName')
+        if [ "${{ inputs.dev_mode }}" = "true" ]; then
+          JQ_FILTER='map(select(.tagName | contains("dev"))).[0].tagName'
+        else
+          JQ_FILTER='map(select(.tagName | contains("dev") | not)).[0].tagName'
+        fi
+
+        LATEST_TAG=$(gh release list --repo "$AUTODOCK_REPO" --limit 20 --json tagName --jq $JQ_FILTER)
         if [ -z "$LATEST_TAG" ]; then
           echo "Error: No releases found in $AUTODOCK_REPO"
           exit 1

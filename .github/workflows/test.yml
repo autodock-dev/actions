@@ -44,8 +44,14 @@ jobs:
             exit 1 # Fail the job if the file isn't found
           fi
 
-      - name: Test -h
+      - name: Test '-h'
         uses: ./
-        id: test_run
         with:
           args: "-h"
+
+      - name: Test 'h' with dev_mode
+        uses: ./
+        with:
+          args: "-h"
+          dev_mode: true
+        
