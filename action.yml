@@ -37,13 +37,12 @@ runs:
       run: |
         echo "Value of AUTODOCK_REPO: '$AUTODOCK_REPO'"
         echo "Finding latest non-dev release for autodock"
+        JQ_FILTER='map(select(.tagName | contains("dev") | not)).[0].tagName'
         if [ "${{ inputs.dev_mode }}" = "true" ]; then
           JQ_FILTER='map(select(.tagName | contains("dev"))).[0].tagName'
-        else
-          JQ_FILTER='map(select(.tagName | contains("dev") | not)).[0].tagName'
         fi
 
-        LATEST_TAG=$(gh release list --repo "$AUTODOCK_REPO" --limit 20 --json tagName --jq '$JQ_FILTER')
+        LATEST_TAG=$(gh release list --repo "$AUTODOCK_REPO" --limit 20 --json tagName --jq "$JQ_FILTER")
         if [ -z "$LATEST_TAG" ]; then
           echo "Error: No releases found in $AUTODOCK_REPO"
           exit 1
