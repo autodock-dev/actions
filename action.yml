@@ -11,8 +11,6 @@ inputs:
     required: false
     default: ""
 
-env:
-  AUTODOCK_REPO: autodock-dev/autodock
 
 runs:
   using: "composite"
@@ -26,6 +24,8 @@ runs:
     - name: Get latest release tag
       id: get-release-tag
       shell: bash
+      env:
+        AUTODOCK_REPO: autodock-dev/autodock
       run: |
         echo "Value of AUTODOCK_REPO: '$AUTODOCK_REPO'"
         echo "Finding latest non-dev release for autodock"
@@ -40,6 +40,8 @@ runs:
     - name: Download the binary asset
       id: download-binary
       shell: bash
+      env:
+        AUTODOCK_REPO: autodock-dev/autodock
       run: |
         DOWNLOAD_DIR='.'
         BINARY_FULL_PATH="$DOWNLOAD_DIR/autodock"
@@ -55,6 +57,8 @@ runs:
 
     - name: Run the downloaded binary
       shell: bash
+      env:
+        AUTODOCK_REPO: autodock-dev/autodock
       run: |
         # Get the compose file path from inputs, defaulting if not provided
         COMPOSE_FILE="${{ inputs.compose_file_path }}"
