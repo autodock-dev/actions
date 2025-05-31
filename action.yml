@@ -19,6 +19,7 @@ runs:
   using: "composite"
   steps:
     - name: Setup GitHub CLI
+      shell: bash
       run: |
         # This ensures gh CLI is authenticated before use.
         # The GITHUB_TOKEN environment variable is automatically available at the job level.
