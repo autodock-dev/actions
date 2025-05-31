@@ -19,6 +19,31 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Verify working directory
+        run: |
+          echo "Current working directory: $(pwd)"
+          echo "Listing contents of current directory:"
+          ls -F
+          echo "Listing contents of .github/workflows/ directory (where test.yml is):"
+          ls -F .github/workflows/ # Just for context
+
+      - name: Check for action.yml and its content
+        run: |
+          if [ -f "action.yml" ]; then
+            echo "action.yml found!"
+            echo "--- Content of action.yml ---"
+            cat action.yml
+            echo "-----------------------------"
+          elif [ -f "action.yaml" ]; then
+            echo "action.yaml found!"
+            echo "--- Content of action.yaml ---"
+            cat action.yaml
+            echo "------------------------------"
+          else
+            echo "Neither action.yml nor action.yaml found in the repository root."
+            exit 1 # Fail the job if the file isn't found
+          fi
+
       - name: Test -h
         uses: ./
         id: test_run
