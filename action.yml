@@ -10,9 +10,9 @@ inputs:
   args:
     description: 'arguments for autodock'
     require: false
-    defaults: "-f ${{ inputs.compose_file_path }}"
+    defaults: ""
 
-outputs: TODO
+# outputs: TODO
 
 runs:
   using: "composite"
@@ -53,8 +53,12 @@ steps:
   - name: Run the downloaded binary
     shell: bash
     run: |
+      # Get the compose file path from inputs, defaulting if not provided
+      COMPOSE_FILE="${{ inputs.compose_file_path }}"
+      # Get any additional arguments provided to the action
+      ADDITIONAL_ARGS="${{ inputs.args }}"
       BINARY_FULL_PATH="${{ steps.download-binary.outputs.binary_path }}"
-      echo "Running: $BINARY_FULL_PATH ${{ inputs.binary_args }}"
-      "$BINARY_FULL_PATH ${{ inputs.args }}"   # TODO: set up AWS credentials and change this to deploy
+      echo "Running: $BINARY_FULL_PATH $COMPOSE_FILE $ADDITIONAL_ARGS"
+      "$BINARY_FULL_PATH $COMPOSE_FILE $ADDITIONAL_ARGS"   # TODO: set up AWS credentials and change this to deploy
       cat ./bootstrap-template.yaml
 
