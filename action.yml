@@ -14,13 +14,13 @@ inputs:
 env:
   AUTODOCK_REPO: autodock-dev/autodock
 
-
 runs:
   using: "composite"
   steps:
     - name: Setup GitHub CLI
       shell: bash
       run: |
+        echo "Value of AUTODOCK_REPO: '$AUTODOCK_REPO'"
         echo "${{ github.token }}" | gh auth login --with-token
         gh config set prompt disabled
 
