@@ -59,7 +59,7 @@ runs:
 
         gh release download "$RELEASE_TAG" \
           --repo "$AUTODOCK_REPO" \
-          --pattern "$ARCHIVE_NAME" \ # <--- Use the full archive name for the pattern
+          --pattern "$ARCHIVE_NAME" \
           --dir "$DOWNLOAD_DIR" \
           --clobber
         
