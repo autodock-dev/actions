@@ -10,10 +10,6 @@ inputs:
     description: 'arguments for autodock'
     required: false
     default: ""
-  binary_asset_name:
-    description: 'Base name of the binary asset to download (e.g., autodock_Linux_x86_64)'
-    required: false
-    default: 'autodock_Linux_x86_64'
   dev_mode:
     description: 'Download latest dev binary for testing purpose'
     required: false
@@ -58,8 +54,18 @@ runs:
       run: |
         DOWNLOAD_DIR='.'
         RELEASE_TAG="${{ steps.get-release-tag.outputs.latest_tag }}"
-        INPUT_ASSET_BASE_NAME="${{ inputs.binary_asset_name }}" # e.g., autodock_Linux_x86_64
-        ARCHIVE_NAME="${INPUT_ASSET_BASE_NAME}.tar.gz"           # e.g., autodock_Linux_x86_64.tar.gz
+
+        INPUT_ASSET_BASE_NAME=autodock_Linux_x86_64
+        if [ "$(uname -m)" = "aarch64" ]; then
+          INPUT_ASSET_BASE_NAME=autodock_Linux_arm64
+        elif [ "$(uname -m)" = "x86_64" ]; then
+          INPUT_ASSET_BASE_NAME=autodock_Linux_x86_64
+        else
+          echo "Error: Unsupported platform. Only Linux x86_64 and aarch64 are supported."
+          exit 1
+        fi
+
+        ARCHIVE_NAME="${INPUT_ASSET_BASE_NAME}.tar.gz"
         
         echo "Downloading archive '$ARCHIVE_NAME' from release '$RELEASE_TAG'"
 
@@ -72,8 +78,6 @@ runs:
         echo "Extracting '$ARCHIVE_NAME' to '$DOWNLOAD_DIR'..."
         tar -xzf "$DOWNLOAD_DIR/$ARCHIVE_NAME" -C "$DOWNLOAD_DIR"
 
-        # Assuming Goreleaser places the executable named 'autodock' at the root of the archive.
-        # Adjust 'autodock' here if the executable has a different name inside the archive.
         ACTUAL_BINARY_PATH="$DOWNLOAD_DIR/autodock" 
 
         if [ ! -f "$ACTUAL_BINARY_PATH" ]; then
@@ -94,5 +98,4 @@ runs:
         BINARY_FULL_PATH="${{ steps.download-binary.outputs.binary_path }}"
         
         echo "Running: $BINARY_FULL_PATH -f $COMPOSE_FILE $ADDITIONAL_ARGS"
-        # Assuming autodock expects -f before the compose file
         "$BINARY_FULL_PATH" -f "$COMPOSE_FILE" $ADDITIONAL_ARGS
